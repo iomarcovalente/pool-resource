@@ -196,13 +196,26 @@ func (glh *GitLockHandler) UpdateLock(lockName string, contents []byte) (string,
 func (glh *GitLockHandler) CheckLock(lockName string) (string, error) {
 	glh.checkOnly = true
 
-	// Wait if claimed
-	_, err := ioutil.ReadFile(filepath.Join(glh.dir, glh.Source.Pool, "claimed", lockName))
-	if err == nil {
-		return "", ErrLockActive
+	// If lockName is "*", check all files
+	if lockName == "*" {
+		files, err := ioutil.ReadDir(filepath.Join(glh.dir, glh.Source.Pool, "claimed"))
+		if err != nil {
+			return "", err
+		}
+
+		// If there are any files, return ErrLockActive
+		if len(files) > 0 {
+			return "", ErrLockActive
+		}
+	} else {
+		// Otherwise, check the specific file
+		_, err := ioutil.ReadFile(filepath.Join(glh.dir, glh.Source.Pool, "claimed", lockName))
+		if err == nil {
+			return "", ErrLockActive
+		}
 	}
 
-	_, err = glh.git("pull", "origin", glh.Source.Branch)
+	_, err := glh.git("pull", "origin", glh.Source.Branch)
 	if err != nil {
 		return "", err
 	}
