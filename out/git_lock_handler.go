@@ -203,8 +203,8 @@ func (glh *GitLockHandler) CheckLock(lockName string) (string, error) {
 			return "", err
 		}
 
-		// If there are any files, return ErrLockActive
-		if len(files) > 0 {
+		// If there are any files, excluding .gitkeep file, return ErrLockActive
+		if len(files) > 1 {
 			return "", ErrLockActive
 		}
 	} else {
